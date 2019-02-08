@@ -1,0 +1,41 @@
+version: '3.2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
+    container_name: local-es-cluster-container
+    environment:
+      - cluster.name=local-es-cluster
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - discovery.zen.minimum_master_nodes=1
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    ulimits:
+      nproc: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - type: volume
+        source: local-es-cluster-data
+        target: /usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.6.0
+    container_name: local-kibana
+    environment:
+      SERVER_NAME: localhost
+      ELASTICSEARCH_URL: http://local-es-cluster-container:9200/
+    ports:
+      - 5601:5601
+    networks:
+      - esnet
+
+volumes:
+  local-es-cluster-data:
+    driver: local
+
+networks:
+  esnet:
